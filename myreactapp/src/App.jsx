@@ -93,7 +93,7 @@ function App() {
     const listeCitite = [];
 
     fisiere.forEach((fisier) => {
-      if (fisier.size > 1500000) {
+      if (fisier.size > 25000000) {
         alert(`Poza ${fisier.name} este prea mare! Redu-i dimensiunea.`);
         return;
       }
