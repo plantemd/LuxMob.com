@@ -98,12 +98,11 @@ function App() {
         </div>
         <p>Tehnică Apple Originală</p>
         
-        {/* ZONA DE BUTOANE MODIFICATĂ COMPLET */}
         <div className="buttons">
-          <button className="btn-normal">Urmărește</button>
+         
           <button className="btn-normal">Mesaj</button>
           
-          {/* Schimbă +37360000000 cu numărul tău real de telefon */}
+          {/* Amintește-ți să schimbi cu numărul tău real */}
           <a href="tel:+37360000000" className="btn-suna">
             Sună
           </a>
@@ -130,16 +129,24 @@ function App() {
       )}
 
       <h2 className="title">Produse Apple</h2>
-      <div className="products">
-        {produse.map((produs) => (
-          <div className="card" key={produs.id}>
-            <img src={produs.imagine} alt={produs.nume} style={{ width: "100%", height: "200px", objectFit: "cover" }} />
-            <h3>{produs.nume}</h3>
-            <p>{produs.pret}</p>
-            {isAdmin && <button onClick={() => stergeProdus(produs.id)} style={{ background: "red", color: "white", width: "100%" }}>Șterge</button>}
-          </div>
-        ))}
-      </div>
+      
+      {/* VERIFICARE DUPĂ PRODUSE DISPONIBILE */}
+      {produse.length === 0 ? (
+        <p style={{ textAlign: "center", color: "#666", marginTop: "20px", fontSize: "14px", fontStyle: "italic" }}>
+          Momentan nu sunt produse disponibile.
+        </p>
+      ) : (
+        <div className="products">
+          {produse.map((produs) => (
+            <div className="card" key={produs.id}>
+              <img src={produs.imagine} alt={produs.nume} style={{ width: "100%", height: "200px", objectFit: "cover" }} />
+              <h3>{produs.nume}</h3>
+              <p>{produs.pret}</p>
+              {isAdmin && <button onClick={() => stergeProdus(produs.id)} style={{ background: "red", color: "white", width: "100%" }}>Șterge</button>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
