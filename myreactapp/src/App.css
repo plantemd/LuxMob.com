@@ -19,7 +19,6 @@ body {
   margin: 0 auto;
 }
 
-/* FIX LOGO */
 .profile {
   text-align: center;
   margin-top: 20px;
@@ -49,7 +48,6 @@ body {
   font-size: 14px;
 }
 
-/* BUTOANE TOP */
 .buttons {
   display: flex;
   justify-content: center;
@@ -84,7 +82,6 @@ body {
   padding-bottom: 10px;
 }
 
-/* PRODUSE */
 .products {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -161,45 +158,7 @@ body {
   cursor: pointer;
 }
 
-/* FIX POP-UP POP-UP COMPLET ECRAN REPARAT REZISTENT */
-/* ÎNLOCUIEȘTE ACEASTĂ CLASĂ ÎN CSS: */
-.custom-lightbox-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background-color: rgba(0, 0, 0, 0.95) !important;
-  
-  /* Forțează tot conținutul să stea fix pe mijlocul ecranului */
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  
-  z-index: 99999 !important;
-}
-}
-
-/* MODIFICĂ ACEASTĂ CLASĂ ÎN CSS: */
-.lightbox-content-box {
-  position: relative;
-  width: 95%;          /* Am mărit de la 90% la 95% din lățimea ecranului */
-  max-width: 800px;     /* Am mărit limita maximă de la 500px la 800px (va fi mult mai lată pe PC) */
-  height: 85vh;        /* Am mărit înălțimea de la 70vh la 85vh (va ocupa aproape tot ecranul pe verticală) */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-}
-
-.lightbox-big-img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
+/* SĂGEȚI ȘI BUTOANE PENTRU MODALUL MARE */
 .lightbox-close-btn {
   position: absolute;
   top: 20px;
@@ -215,11 +174,11 @@ body {
   z-index: 100000;
 }
 
-..lightbox-btn-arrow {
+.lightbox-btn-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.7); /* Fundal negru mai opac ca să se vadă clar peste poză */
+  background: rgba(0, 0, 0, 0.8);
   color: white;
   border: none;
   font-size: 32px;
@@ -227,21 +186,10 @@ body {
   height: 45px;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* Un efect ușor de strălucire */
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
-
-/* Săgețile vor sta lipite de margini ca să lase poza liberă */
-.lightbox-btn-arrow.left { left: 5px; }
-.lightbox-btn-arrow.right { right: 5px; }
-}
-.lightbox-btn-arrow.left { left: -10px; }
-.lightbox-btn-arrow.right { right: -10px; }
-
-.lightbox-indicator {
-  margin-top: 15px;
-  color: #aaa;
-  font-size: 14px;
-}
+.lightbox-btn-arrow.left { left: 10px; }
+.lightbox-btn-arrow.right { right: 10px; }
 
 form input[type="text"] {
   width: 100%;
@@ -254,6 +202,4 @@ form input[type="text"] {
 
 @media (max-width: 500px) {
   .products { grid-template-columns: 1fr; }
-  .lightbox-btn-arrow.left { left: 5px; }
-  .lightbox-btn-arrow.right { right: 5px; }
 }
