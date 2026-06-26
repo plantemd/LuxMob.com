@@ -25,7 +25,6 @@ function App() {
 
   const autentificareDirector = () => {
     const parolaIntrodusa = prompt("Introdu parola de administrator:");
-    // Poți schimba parola de mai jos cu ce dorește directorul ta:
     if (parolaIntrodusa === "director_luxmob123") {
       setIsAdmin(true);
     } else {
@@ -40,21 +39,35 @@ function App() {
 
   const [numeNou, setNumeNou] = useState("");
   const [pretNou, setPretNou] = useState("");
+  // Aici vom salva imaginea transformată în text (Base64)
   const [imagineNoua, setImagineNoua] = useState("");
 
   useEffect(() => {
     localStorage.setItem("produse_lux_mob", JSON.stringify(produse));
   }, [produse]);
 
+  // Funcție care ia poza din telefon și o transformă în text
+  const manipulareFisierPoza = (e) => {
+    const fisier = e.target.files[0];
+    if (fisier) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagineNoua(reader.result); // Salvează imaginea convertită
+      };
+      reader.readAsDataURL(fisier);
+    }
+  };
+
   const adaugaProdus = (e) => {
     e.preventDefault();
     if (!numeNou || !pretNou) return alert("Introdu numele și prețul!");
+    if (!imagineNoua) return alert("Te rog să alegi o imagine din telefon!");
 
     const produsNou = {
       id: Date.now(),
       nume: numeNou,
       pret: pretNou.includes("MDL") ? pretNou : `${pretNou} MDL`,
-      imagine: imagineNoua || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9"
+      imagine: imagineNoua // Aici se salvează direct poza încărcată
     };
 
     setProduse([...produse, produsNou]);
@@ -80,7 +93,6 @@ function App() {
           <button>Mesaj</button>
           <button>Sună</button>
           
-          {/* Buton ascuns la vedere pentru logare director */}
           {!isAdmin ? (
             <button onClick={autentificareDirector} style={{ background: "#222", color: "gold", border: "1px solid gold" }}>
               Logare Admin
@@ -93,11 +105,11 @@ function App() {
         </div>
       </div>
 
-      {/* --- PANOU ADMIN ASCUNS (Apare DOAR dacă isAdmin este true) --- */}
+      {/* --- PANOU ADMIN MODIFICAT PENTRU ÎNCĂRCARE FIȘIERE --- */}
       {isAdmin && (
         <div style={{ background: "#1a1a1a", padding: "20px", borderRadius: "15px", marginTop: "30px", border: "1px solid gold" }}>
           <h3 style={{ marginBottom: "15px", color: "gold" }}>Panou Director (Mod Editare Activ)</h3>
-          <form onSubmit={adaugaProdus} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <form onSubmit={adaugaProdus} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             <input 
               type="text" 
               placeholder="Nume produs" 
@@ -112,14 +124,27 @@ function App() {
               onChange={(e) => setPretNou(e.target.value)}
               style={{ padding: "10px", borderRadius: "5px", border: "none", background: "#333", color: "white" }}
             />
-            <input 
-              type="text" 
-              placeholder="Link Imagine (URL)" 
-              value={imagineNoua} 
-              onChange={(e) => setImagineNoua(e.target.value)}
-              style={{ padding: "10px", borderRadius: "5px", border: "none", background: "#333", color: "white" }}
-            />
-            <button type="submit" style={{ padding: "10px", background: "gold", color: "black", border: "none", borderRadius: "5px", fontWeight: "bold", cursor: "pointer" }}>
+            
+            {/* Butonul nou care deschide galeria foto a telefonului */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "5px" }}>
+              <label style={{ color: "gold", fontSize: "14px" }}>Selectează poza din telefon:</label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={manipulareFisierPoza}
+                style={{ padding: "10px", borderRadius: "5px", background: "#333", color: "white", width: "100%" }}
+              />
+            </div>
+
+            {/* Previhualizare mică a pozei alese înainte de salvare */}
+            {imagineNoua && (
+              <div style={{ marginTop: "5px" }}>
+                <p style={{ color: "#aaa", fontSize: "12px", marginBottom: "5px" }}>Previzualizare poză selectată:</p>
+                <img src={imagineNoua} alt="Preview" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px", border: "1px solid gold" }} />
+              </div>
+            )}
+
+            <button type="submit" style={{ padding: "10px", background: "gold", color: "black", border: "none", borderRadius: "5px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}>
               Adaugă pe Site
             </button>
           </form>
@@ -135,7 +160,6 @@ function App() {
             <h3>{produs.nume}</h3>
             <p>{produs.pret}</p>
             
-            {/* Butonul de ștergere apare DOAR dacă directorul este logat */}
             {isAdmin && (
               <button 
                 onClick={() => stergeProdus(produs.id)}
