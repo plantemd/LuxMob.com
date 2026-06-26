@@ -162,6 +162,7 @@ body {
 }
 
 /* FIX POP-UP POP-UP COMPLET ECRAN REPARAT REZISTENT */
+/* ÎNLOCUIEȘTE ACEASTĂ CLASĂ ÎN CSS: */
 .custom-lightbox-overlay {
   position: fixed !important;
   top: 0 !important;
@@ -169,11 +170,15 @@ body {
   width: 100vw !important;
   height: 100vh !important;
   background-color: rgba(0, 0, 0, 0.95) !important;
+  
+  /* Forțează tot conținutul să stea fix pe mijlocul ecranului */
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
+  
   z-index: 99999 !important;
+}
 }
 
 /* MODIFICĂ ACEASTĂ CLASĂ ÎN CSS: */
