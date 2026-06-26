@@ -176,14 +176,16 @@ body {
   z-index: 99999 !important;
 }
 
+/* MODIFICĂ ACEASTĂ CLASĂ ÎN CSS: */
 .lightbox-content-box {
   position: relative;
-  width: 95%;
-  max-width: 500px;
-  height: 70vh;
+  width: 95%;          /* Am mărit de la 90% la 95% din lățimea ecranului */
+  max-width: 800px;     /* Am mărit limita maximă de la 500px la 800px (va fi mult mai lată pe PC) */
+  height: 85vh;        /* Am mărit înălțimea de la 70vh la 85vh (va ocupa aproape tot ecranul pe verticală) */
   display: flex;
   align-items: center;
   justify-content: center;
+}
 }
 
 .lightbox-big-img {
