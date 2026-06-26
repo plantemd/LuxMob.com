@@ -17,26 +17,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-function ProductCard({ produs, isAdmin, stergeProdus }) {
+function ProductCard({ produs, isAdmin, stergeProdus, deschidePozaMare }) {
   const [indexImagine, setIndexImagine] = useState(0);
-  
-  // Ne asigurăm că avem o listă de imagini validă
   const imagini = Array.isArray(produs.imagine) ? produs.imagine : [produs.imagine];
 
   const imagineaUrmatoare = (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Oprește deschiderea pop-up-ului când apeși pe săgeată
     setIndexImagine((prev) => (prev + 1) % imagini.length);
   };
 
   const imagineaAnterioara = (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Oprește deschiderea pop-up-ului când apeși pe săgeată
     setIndexImagine((prev) => (prev - 1 + imagini.length) % imagini.length);
   };
 
   return (
     <div className="card">
-      <div className="card-image-container">
-        <img src={imagini[indexImagine]} alt={produs.nume} />
+      {/* Când se dă click pe containerul imaginii, se deschide ecranul complet */}
+      <div className="card-image-container" onClick={() => deschidePozaMare(imagini, indexImagine)}>
+        <img src={imagini[indexImagine]} alt={produs.nume} style={{ cursor: "zoom-in" }} />
         
         {imagini.length > 1 && (
           <>
@@ -67,6 +66,11 @@ function App() {
   const [imaginiBase64, setImaginiBase64] = useState([]);
   const [incarcareInCurs, setIncarcareInCurs] = useState(false);
 
+  // Stări pentru fereastra pop-up cu poza mare
+  const [fereastraDeschisa, setFereastraDeschisa] = useState(false);
+  const [imaginiPopUp, setImaginiPopUp] = useState([]);
+  const [indexPopUp, setIndexPopUp] = useState(0);
+
   useEffect(() => {
     const colectieProduse = collection(db, "produse");
     const unsubscribe = onSnapshot(colectieProduse, (snapshot) => {
@@ -78,6 +82,12 @@ function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  const deschidePozaMare = (listaImagini, indexCurent) => {
+    setImaginiPopUp(listaImagini);
+    setIndexPopUp(indexCurent);
+    setFereastraDeschisa(true);
+  };
 
   const autentificareDirector = () => {
     const parolaIntrodusa = prompt("Introdu parola de administrator:");
@@ -93,8 +103,8 @@ function App() {
     const listeCitite = [];
 
     fisiere.forEach((fisier) => {
-      if (fisier.size > 25000000) {
-        alert(`Poza ${fisier.name} este prea mare! Redu-i dimensiunea.`);
+      if (fisier.size > 1500000) {
+        alert(`Poza ${fisier.name} este prea mare! Redu-i dimensiunea sau fă-i screenshot.`);
         return;
       }
       const reader = new FileReader();
@@ -119,7 +129,7 @@ function App() {
       await addDoc(collection(db, "produse"), {
         nume: numeNou,
         pret: formatPret,
-        imagine: imaginiBase64 // Salvăm lista completă de imagini
+        imagine: imaginiBase64
       });
       setNumeNou("");
       setPretNou("");
@@ -165,7 +175,6 @@ function App() {
             <input type="text" placeholder="Nume produs" value={numeNou} onChange={(e) => setNumeNou(e.target.value)} style={{ padding: "10px", background: "#333", color: "white", border: "none" }}/>
             <input type="text" placeholder="Preț" value={pretNou} onChange={(e) => setPretNou(e.target.value)} style={{ padding: "10px", background: "#333", color: "white", border: "none" }}/>
             
-            {/* Adăugat 'multiple' pentru selectarea mai multor poze */}
             <label style={{ color: "gold", fontSize: "12px" }}>Poți selecta mai multe poze simultan:</label>
             <input type="file" accept="image/*" multiple onChange={manipulareFisierePoze} style={{ color: "white" }}/>
             
@@ -185,8 +194,29 @@ function App() {
       ) : (
         <div className="products">
           {produse.map((produs) => (
-            <ProductCard key={produs.id} produs={produs} isAdmin={isAdmin} stergeProdus={stergeProdus} />
+            <ProductCard key={produs.id} produs={produs} isAdmin={isAdmin} stergeProdus={stergeProdus} deschidePozaMare={deschidePozaMare} />
           ))}
+        </div>
+      )}
+
+      {/* --- STRUCTURA PENTRU POP-UP / MODAL (VIZUALIZARE INTRARE ÎN POZĂ) --- */}
+      {fereastraDeschisa && (
+        <div className="lightbox-overlay" onClick={() => setFereastraDeschisa(false)}>
+          <button className="lightbox-close" onClick={() => setFereastraDeschisa(false)}>×</button>
+          
+          {imaginiPopUp.length > 1 && (
+            <button className="lightbox-arrow left" onClick={(e) => { e.stopPropagation(); setIndexPopUp((prev) => (prev - 1 + imaginiPopUp.length) % imaginiPopUp.length); }}>‹</button>
+          )}
+
+          <img src={imaginiPopUp[indexPopUp]} alt="Produs marit" className="lightbox-image" onClick={(e) => e.stopPropagation()} />
+
+          {imaginiPopUp.length > 1 && (
+            <button className="lightbox-arrow right" onClick={(e) => { e.stopPropagation(); setIndexPopUp((prev) => (prev + 1) % imaginiPopUp.length); }}>›</button>
+          )}
+          
+          <div className="lightbox-counter">
+            {indexPopUp + 1} / {imaginiPopUp.length}
+          </div>
         </div>
       )}
     </div>
