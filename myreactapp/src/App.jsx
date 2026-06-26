@@ -97,19 +97,21 @@ function App() {
           <img src="logo.png" alt="Lux_Mob" className="logo"/>
         </div>
         <p>Tehnică Apple Originală</p>
+        
+        {/* ZONA DE BUTOANE MODIFICATĂ COMPLET */}
         <div className="buttons">
-          <button>Urmărește</button>
-          <button>Mesaj</button>
+          <button className="btn-normal">Urmărește</button>
+          <button className="btn-normal">Mesaj</button>
           
-          {/* BUTONUL DE APEL TELEFONIC - Înlocuiește +37360000000 cu numărul tău real */}
-          <a href="tel:+37360000000" style={{ textDecoration: 'none' }}>
-            <button style={{ cursor: 'pointer' }}>Sună</button>
+          {/* Schimbă +37360000000 cu numărul tău real de telefon */}
+          <a href="tel:+37360000000" className="btn-suna">
+            Sună
           </a>
 
           {!isAdmin ? (
-            <button onClick={autentificareDirector} style={{ background: "#222", color: "gold", border: "1px solid gold" }}>Admin</button>
+            <button onClick={autentificareDirector} style={{ background: "#222", color: "gold", border: "1px solid gold" }} className="btn-normal">Admin</button>
           ) : (
-            <button onClick={() => setIsAdmin(false)} style={{ background: "red", color: "white" }}>Ieșire</button>
+            <button onClick={() => setIsAdmin(false)} style={{ background: "red", color: "white" }} className="btn-normal">Ieșire</button>
           )}
         </div>
       </div>
