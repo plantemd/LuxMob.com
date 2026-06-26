@@ -210,11 +210,11 @@ body {
   z-index: 100000;
 }
 
-.lightbox-btn-arrow {
+..lightbox-btn-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.7); /* Fundal negru mai opac ca să se vadă clar peste poză */
   color: white;
   border: none;
   font-size: 32px;
@@ -222,6 +222,12 @@ body {
   height: 45px;
   border-radius: 50%;
   cursor: pointer;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* Un efect ușor de strălucire */
+}
+
+/* Săgețile vor sta lipite de margini ca să lase poza liberă */
+.lightbox-btn-arrow.left { left: 5px; }
+.lightbox-btn-arrow.right { right: 5px; }
 }
 .lightbox-btn-arrow.left { left: -10px; }
 .lightbox-btn-arrow.right { right: -10px; }
