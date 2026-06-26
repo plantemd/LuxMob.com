@@ -103,7 +103,6 @@ body {
   position: relative;
 }
 
-/* CONTAINERUL DE IMAGINE ȘI SĂGEȚI INTERNE */
 .card-image-container {
   position: relative;
   width: 100%;
@@ -117,7 +116,7 @@ body {
   object-fit: cover;
 }
 
-/* SĂGEȚILE DE NAVIGARE MULTI-POZĂ */
+/* SĂGEȚILE DE PE CARD */
 .nav-arrow {
   position: absolute;
   top: 50%;
@@ -134,17 +133,12 @@ body {
   align-items: center;
   justify-content: center;
   user-select: none;
-  transition: background 0.2s;
-}
-
-.nav-arrow:hover {
-  background: rgba(0, 0, 0, 0.9);
+  z-index: 2;
 }
 
 .nav-arrow.left { left: 8px; }
 .nav-arrow.right { right: 8px; }
 
-/* COUNTERUL DE POZE (Ex: 1 / 3) */
 .image-counter {
   position: absolute;
   bottom: 8px;
@@ -154,6 +148,7 @@ body {
   padding: 2px 6px;
   font-size: 11px;
   border-radius: 10px;
+  z-index: 2;
 }
 
 .card h3 {
@@ -173,6 +168,68 @@ body {
   margin: 0 12px 12px 12px;
 }
 
+/* --- STILURI EFECT INTRARE ÎN FOTO (LIGHTBOX POP-UP) --- */
+.lightbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.lightbox-image {
+  max-width: 90%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.lightbox-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  font-size: 35px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-arrow:hover { background: rgba(255, 255, 255, 0.25); }
+.lightbox-arrow.left { left: 20px; }
+.lightbox-arrow.right { right: 20px; }
+
+.lightbox-counter {
+  position: absolute;
+  bottom: 30px;
+  color: #aaa;
+  font-size: 16px;
+}
+
 /* --- ADMIN FORM --- */
 form input[type="text"] {
   width: 100%;
@@ -182,21 +239,11 @@ form input[type="text"] {
   border: 1px solid #333 !important;
   border-radius: 8px;
   font-size: 14px;
-  outline: none;
-}
-
-form input[type="text"]:focus {
-  border-color: gold !important;
-}
-
-form button[type="submit"] {
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
 }
 
 @media (max-width: 400px) {
-  .products {
-    grid-template-columns: 1fr;
-  }
+  .products { grid-template-columns: 1fr; }
+  .lightbox-arrow { font-size: 25px; width: 35px; height: 35px; }
+  .lightbox-arrow.left { left: 5px; }
+  .lightbox-arrow.right { right: 5px; }
 }
