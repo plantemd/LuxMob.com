@@ -30,7 +30,7 @@ function App() {
   const [incarcareInCurs, setIncarcareInCurs] = useState(false);
 
   // --- CITIRE DATE ÎN TIMP REAL ---
-  // Oricând adaugi sau ștergi un produs, modificarea apare instant la TOȚI utilizatorii de pe site
+  // Oricând adaugi sau ștergi un amazon, modificarea apare instant la TOȚI utilizatorii de pe site
   useEffect(() => {
     const colectieProduse = collection(db, "produse");
     
@@ -109,87 +109,3 @@ function App() {
     if (window.confirm("Sigur vrei să ștergi definitiv acest produs?")) {
       try {
         await deleteDoc(doc(db, "produse", id));
-      } catch (eroare) {
-        alert("Nu s-a putut șterge produsul.");
-      }
-    }
-  };
-
-  return (
-    <div className="container">
-      <div className="profile">
-        <div className="logo">
-          <img src="logo.png" alt="Lux_Mob" className="logo"/>
-        </div>
-        <p>Tehnică Apple Originală</p>
-        <div className="buttons">
-          <button>Urmărește</button>
-          <button>Mesaj</button>
-          <button>Sună</button>
-          
-          {!isAdmin ? (
-            <button onClick={autentificareDirector} style={{ background: "#222", color: "gold", border: "1px solid gold" }}>
-              Logare Admin
-            </button>
-          ) : (
-            <button onClick={deconectareDirector} style={{ background: "red", color: "white" }}>
-              Ieșire Admin
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* --- PANOU ADMINISTRATOR (DIRECTOR) --- */}
-      {isAdmin && (
-        <div style={{ background: "#1a1a1a", padding: "20px", borderRadius: "15px", marginTop: "30px", border: "1px solid gold" }}>
-          <h3 style={{ marginBottom: "15px", color: "gold" }}>Panou Director (Bază de date conectată)</h3>
-          <form onSubmit={adaugaProdus} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-            <input 
-              type="text" 
-              placeholder="Nume produs (ex: iPhone 15 Pro)" 
-              value={numeNou} 
-              onChange={(e) => setNumeNou(e.target.value)}
-              style={{ padding: "10px", borderRadius: "5px", border: "none", background: "#333", color: "white" }}
-            />
-            <input 
-              type="text" 
-              placeholder="Preț (ex: 1200)" 
-              value={pretNou} 
-              onChange={(e) => setPretNou(e.target.value)}
-              style={{ padding: "10px", borderRadius: "5px", border: "none", background: "#333", color: "white" }}
-            />
-            
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "5px" }}>
-              <label style={{ color: "gold", fontSize: "14px" }}>Selectează poza din telefon:</label>
-              <input 
-                type="file" 
-                accept="image/*"
-                onChange={manipulareFisierPoza}
-                style={{ padding: "10px", borderRadius: "5px", background: "#333", color: "white", width: "100%" }}
-              />
-            </div>
-
-            {imagineBase64 && (
-              <div style={{ marginTop: "5px" }}>
-                <p style={{ color: "#aaa", fontSize: "12px", marginBottom: "5px" }}>Previzualizare foto:</p>
-                <img src={imagineBase64} alt="Preview" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px", border: "1px solid gold" }} />
-              </div>
-            )}
-
-            <button 
-              type="submit" 
-              disabled={incarcareInCurs}
-              style={{ padding: "10px", background: incarcareInCurs ? "#555" : "gold", color: "black", border: "none", borderRadius: "5px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}
-            >
-              {incarcareInCurs ? "Se salvează în baza de date..." : "Adaugă pe Site"}
-            </button>
-          </form>
-        </div>
-      )}
-
-      <h2 className="title">Produse Apple</h2>
-
-      {/* --- LISTA DE PRODUSE SINCRONIZATĂ --- */}
-      <div className="products">
-        {produse.length === 0 ? (
-          <p style={{ color: "#aaa", textAlign: "center", width: "100%", gridColumn: "1/-1", padding: "20px"
