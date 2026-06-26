@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "firebase/firestore";
@@ -22,20 +22,19 @@ function ProductCard({ produs, isAdmin, stergeProdus, deschidePozaMare }) {
   const imagini = Array.isArray(produs.imagine) ? produs.imagine : [produs.imagine];
 
   const imagineaUrmatoare = (e) => {
-    e.stopPropagation(); // Oprește deschiderea pop-up-ului când apeși pe săgeată
+    e.stopPropagation();
     setIndexImagine((prev) => (prev + 1) % imagini.length);
   };
 
   const imagineaAnterioara = (e) => {
-    e.stopPropagation(); // Oprește deschiderea pop-up-ului când apeși pe săgeată
+    e.stopPropagation();
     setIndexImagine((prev) => (prev - 1 + imagini.length) % imagini.length);
   };
 
   return (
     <div className="card">
-      {/* Când se dă click pe containerul imaginii, se deschide ecranul complet */}
       <div className="card-image-container" onClick={() => deschidePozaMare(imagini, indexImagine)}>
-        <img src={imagini[indexImagine]} alt={produs.nume} style={{ cursor: "zoom-in" }} />
+        <img src={imagini[indexImagine]} alt={produs.nume} className="main-card-img" />
         
         {imagini.length > 1 && (
           <>
@@ -50,8 +49,8 @@ function ProductCard({ produs, isAdmin, stergeProdus, deschidePozaMare }) {
       <h3>{produs.nume}</h3>
       <p>{produs.pret}</p>
       {isAdmin && (
-        <button onClick={() => stergeProdus(produs.id)} style={{ background: "red", color: "white", width: "100%", borderRadius: "0 0 12px 12px", border: "none", padding: "10px", cursor: "pointer" }}>
-          Șterge
+        <button onClick={() => stergeProdus(produs.id)} className="btn-sterge">
+          Șterge Produs
         </button>
       )}
     </div>
@@ -66,10 +65,10 @@ function App() {
   const [imaginiBase64, setImaginiBase64] = useState([]);
   const [incarcareInCurs, setIncarcareInCurs] = useState(false);
 
-  // Stări pentru fereastra pop-up cu poza mare
-  const [fereastraDeschisa, setFereastraDeschisa] = useState(false);
+  // Stări pentru fereastra modală nativă
   const [imaginiPopUp, setImaginiPopUp] = useState([]);
   const [indexPopUp, setIndexPopUp] = useState(0);
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     const colectieProduse = collection(db, "produse");
@@ -86,7 +85,15 @@ function App() {
   const deschidePozaMare = (listaImagini, indexCurent) => {
     setImaginiPopUp(listaImagini);
     setIndexPopUp(indexCurent);
-    setFereastraDeschisa(true);
+    if (dialogRef.current) {
+      dialogRef.current.showModal(); // Deschide ecranul complet nativ peste absolut orice
+    }
+  };
+
+  const inchidePozaMare = () => {
+    if (dialogRef.current) {
+      dialogRef.current.close();
+    }
   };
 
   const autentificareDirector = () => {
@@ -103,7 +110,7 @@ function App() {
     const listeCitite = [];
 
     fisiere.forEach((fisier) => {
-      if (fisier.size > 1500000) {
+      if (fisier.size > 2500000) { // Am mărit limita la 2.5MB în cod
         alert(`Poza ${fisier.name} este prea mare! Redu-i dimensiunea sau fă-i screenshot.`);
         return;
       }
@@ -152,9 +159,9 @@ function App() {
     <div className="container">
       <div className="profile">
         <div className="logo">
-          <img src="logo.png" alt="Lux_Mob" className="logo"/>
+          <img src="logo.png" alt="Lux_Mob" className="logo-img"/>
         </div>
-        <p>Tehnică Apple Originală</p>
+        <p className="profile-subtitle">Tehnică Apple Originală</p>
         
         <div className="buttons">
           <button className="btn-normal">Urmărește</button>
@@ -199,26 +206,28 @@ function App() {
         </div>
       )}
 
-      {/* --- STRUCTURA PENTRU POP-UP / MODAL (VIZUALIZARE INTRARE ÎN POZĂ) --- */}
-      {fereastraDeschisa && (
-        <div className="lightbox-overlay" onClick={() => setFereastraDeschisa(false)}>
-          <button className="lightbox-close" onClick={() => setFereastraDeschisa(false)}>×</button>
+      {/* --- POP-UP NATIV TIP DIALOG (IMPOSIBIL DE BLOCAT SAU DECALAT) --- */}
+      <dialog ref={dialogRef} className="lightbox-dialog" onClick={inchidePozaMare}>
+        <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+          <button className="lightbox-close-btn" onClick={inchidePozaMare}>×</button>
           
-          {imaginiPopUp.length > 1 && (
-            <button className="lightbox-arrow left" onClick={(e) => { e.stopPropagation(); setIndexPopUp((prev) => (prev - 1 + imaginiPopUp.length) % imaginiPopUp.length); }}>‹</button>
-          )}
+          <div className="lightbox-viewer">
+            {imaginiPopUp.length > 1 && (
+              <button className="lightbox-btn-arrow left" onClick={() => setIndexPopUp((prev) => (prev - 1 + imaginiPopUp.length) % imaginiPopUp.length)}>‹</button>
+            )}
 
-          <img src={imaginiPopUp[indexPopUp]} alt="Produs marit" className="lightbox-image" onClick={(e) => e.stopPropagation()} />
+            <img src={imaginiPopUp[indexPopUp]} alt="Vizualizare mare" className="lightbox-main-img" />
 
-          {imaginiPopUp.length > 1 && (
-            <button className="lightbox-arrow right" onClick={(e) => { e.stopPropagation(); setIndexPopUp((prev) => (prev + 1) % imaginiPopUp.length); }}>›</button>
-          )}
-          
-          <div className="lightbox-counter">
+            {imaginiPopUp.length > 1 && (
+              <button className="lightbox-btn-arrow right" onClick={() => setIndexPopUp((prev) => (prev + 1) % imaginiPopUp.length)}>›</button>
+            )}
+          </div>
+
+          <div className="lightbox-indicator">
             {indexPopUp + 1} / {imaginiPopUp.length}
           </div>
         </div>
-      )}
+      </dialog>
     </div>
   );
 }
