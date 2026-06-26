@@ -17,15 +17,56 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+function ProductCard({ produs, isAdmin, stergeProdus }) {
+  const [indexImagine, setIndexImagine] = useState(0);
+  
+  // Ne asigurăm că avem o listă de imagini validă
+  const imagini = Array.isArray(produs.imagine) ? produs.imagine : [produs.imagine];
+
+  const imagineaUrmatoare = (e) => {
+    e.stopPropagation();
+    setIndexImagine((prev) => (prev + 1) % imagini.length);
+  };
+
+  const imagineaAnterioara = (e) => {
+    e.stopPropagation();
+    setIndexImagine((prev) => (prev - 1 + imagini.length) % imagini.length);
+  };
+
+  return (
+    <div className="card">
+      <div className="card-image-container">
+        <img src={imagini[indexImagine]} alt={produs.nume} />
+        
+        {imagini.length > 1 && (
+          <>
+            <button onClick={imagineaAnterioara} className="nav-arrow left">‹</button>
+            <button onClick={imagineaUrmatoare} className="nav-arrow right">›</button>
+            <div className="image-counter">
+              {indexImagine + 1} / {imagini.length}
+            </div>
+          </>
+        )}
+      </div>
+      <h3>{produs.nume}</h3>
+      <p>{produs.pret}</p>
+      {isAdmin && (
+        <button onClick={() => stergeProdus(produs.id)} style={{ background: "red", color: "white", width: "100%", borderRadius: "0 0 12px 12px", border: "none", padding: "10px", cursor: "pointer" }}>
+          Șterge
+        </button>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [produse, setProduse] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [numeNou, setNumeNou] = useState("");
   const [pretNou, setPretNou] = useState("");
-  const [imagineBase64, setImagineBase64] = useState("");
+  const [imaginiBase64, setImaginiBase64] = useState([]);
   const [incarcareInCurs, setIncarcareInCurs] = useState(false);
 
-  // Ascultă în timp real produsele din baza de date
   useEffect(() => {
     const colectieProduse = collection(db, "produse");
     const unsubscribe = onSnapshot(colectieProduse, (snapshot) => {
@@ -47,36 +88,43 @@ function App() {
     }
   };
 
-  const manipulareFisierPoza = (e) => {
-    const fisier = e.target.files[0];
-    if (fisier) {
+  const manipulareFisierePoze = (e) => {
+    const fisiere = Array.from(e.target.files);
+    const listeCitite = [];
+
+    fisiere.forEach((fisier) => {
       if (fisier.size > 1500000) {
-        alert("Poza este prea mare! Fă-i un screenshot pentru a o micșora.");
+        alert(`Poza ${fisier.name} este prea mare! Redu-i dimensiunea.`);
         return;
       }
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagineBase64(reader.result);
+        listeCitite.push(reader.result);
+        if (listeCitite.length === fisiere.length) {
+          setImaginiBase64(listeCitite);
+        }
       };
       reader.readAsDataURL(fisier);
-    }
+    });
   };
 
   const adaugaProdus = async (e) => {
     e.preventDefault();
-    if (!numeNou || !pretNou || !imagineBase64) return alert("Completează toate câmpurile și alege o imagine!");
+    if (!numeNou || !pretNou || imaginiBase64.length === 0) {
+      return alert("Completează toate câmpurile și alege cel puțin o imagine!");
+    }
     setIncarcareInCurs(true);
     try {
       const formatPret = pretNou.includes("MDL") ? pretNou : `${pretNou} MDL`;
       await addDoc(collection(db, "produse"), {
         nume: numeNou,
         pret: formatPret,
-        imagine: imagineBase64
+        imagine: imaginiBase64 // Salvăm lista completă de imagini
       });
       setNumeNou("");
       setPretNou("");
-      setImagineBase64("");
-      alert("Produs adăugat!");
+      setImaginiBase64([]);
+      alert("Produs adăugat cu succes!");
     } catch (eroare) {
       alert("Eroare la salvare.");
     } finally {
@@ -99,13 +147,9 @@ function App() {
         <p>Tehnică Apple Originală</p>
         
         <div className="buttons">
-         
+          <button className="btn-normal">Urmărește</button>
           <button className="btn-normal">Mesaj</button>
-          
-          {/* Amintește-ți să schimbi cu numărul tău real */}
-          <a href="tel:+37360000000" className="btn-suna">
-            Sună
-          </a>
+          <a href="tel:+37360000000" className="btn-suna">Sună</a>
 
           {!isAdmin ? (
             <button onClick={autentificareDirector} style={{ background: "#222", color: "gold", border: "1px solid gold" }} className="btn-normal">Admin</button>
@@ -120,9 +164,13 @@ function App() {
           <form onSubmit={adaugaProdus} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             <input type="text" placeholder="Nume produs" value={numeNou} onChange={(e) => setNumeNou(e.target.value)} style={{ padding: "10px", background: "#333", color: "white", border: "none" }}/>
             <input type="text" placeholder="Preț" value={pretNou} onChange={(e) => setPretNou(e.target.value)} style={{ padding: "10px", background: "#333", color: "white", border: "none" }}/>
-            <input type="file" accept="image/*" onChange={manipulareFisierPoza} style={{ color: "white" }}/>
-            <button type="submit" disabled={incarcareInCurs} style={{ padding: "10px", background: "gold", color: "black", fontWeight: "bold" }}>
-              {incarcareInCurs ? "Se salvează..." : "Adaugă pe Site"}
+            
+            {/* Adăugat 'multiple' pentru selectarea mai multor poze */}
+            <label style={{ color: "gold", fontSize: "12px" }}>Poți selecta mai multe poze simultan:</label>
+            <input type="file" accept="image/*" multiple onChange={manipulareFisierePoze} style={{ color: "white" }}/>
+            
+            <button type="submit" disabled={incarcareInCurs} style={{ padding: "12px", background: "gold", color: "black", fontWeight: "bold" }}>
+              {incarcareInCurs ? "Se salvează..." : `Adaugă pe Site (${imaginiBase64.length} foto selectate)`}
             </button>
           </form>
         </div>
@@ -130,7 +178,6 @@ function App() {
 
       <h2 className="title">Produse Apple</h2>
       
-      {/* VERIFICARE DUPĂ PRODUSE DISPONIBILE */}
       {produse.length === 0 ? (
         <p style={{ textAlign: "center", color: "#666", marginTop: "20px", fontSize: "14px", fontStyle: "italic" }}>
           Momentan nu sunt produse disponibile.
@@ -138,12 +185,7 @@ function App() {
       ) : (
         <div className="products">
           {produse.map((produs) => (
-            <div className="card" key={produs.id}>
-              <img src={produs.imagine} alt={produs.nume} style={{ width: "100%", height: "200px", objectFit: "cover" }} />
-              <h3>{produs.nume}</h3>
-              <p>{produs.pret}</p>
-              {isAdmin && <button onClick={() => stergeProdus(produs.id)} style={{ background: "red", color: "white", width: "100%" }}>Șterge</button>}
-            </div>
+            <ProductCard key={produs.id} produs={produs} isAdmin={isAdmin} stergeProdus={stergeProdus} />
           ))}
         </div>
       )}
