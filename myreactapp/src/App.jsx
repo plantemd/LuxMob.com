@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "firebase/firestore";
@@ -50,7 +50,7 @@ function ProductCard({ produs, isAdmin, stergeProdus, deschidePozaMare }) {
       <p>{produs.pret}</p>
       {isAdmin && (
         <button onClick={() => stergeProdus(produs.id)} className="btn-sterge">
-          Șterge Produs
+          Șterge
         </button>
       )}
     </div>
@@ -65,10 +65,9 @@ function App() {
   const [imaginiBase64, setImaginiBase64] = useState([]);
   const [incarcareInCurs, setIncarcareInCurs] = useState(false);
 
-  // Stări pentru fereastra modală nativă
+  const [fereastraDeschisa, setFereastraDeschisa] = useState(false);
   const [imaginiPopUp, setImaginiPopUp] = useState([]);
   const [indexPopUp, setIndexPopUp] = useState(0);
-  const dialogRef = useRef(null);
 
   useEffect(() => {
     const colectieProduse = collection(db, "produse");
@@ -85,15 +84,7 @@ function App() {
   const deschidePozaMare = (listaImagini, indexCurent) => {
     setImaginiPopUp(listaImagini);
     setIndexPopUp(indexCurent);
-    if (dialogRef.current) {
-      dialogRef.current.showModal(); // Deschide ecranul complet nativ peste absolut orice
-    }
-  };
-
-  const inchidePozaMare = () => {
-    if (dialogRef.current) {
-      dialogRef.current.close();
-    }
+    setFereastraDeschisa(true);
   };
 
   const autentificareDirector = () => {
@@ -110,8 +101,8 @@ function App() {
     const listeCitite = [];
 
     fisiere.forEach((fisier) => {
-      if (fisier.size > 2500000) { // Am mărit limita la 2.5MB în cod
-        alert(`Poza ${fisier.name} este prea mare! Redu-i dimensiunea sau fă-i screenshot.`);
+      if (fisier.size > 2500000) {
+        alert(`Poza ${fisier.name} este prea mare! Maximum 2.5MB.`);
         return;
       }
       const reader = new FileReader();
@@ -128,7 +119,7 @@ function App() {
   const adaugaProdus = async (e) => {
     e.preventDefault();
     if (!numeNou || !pretNou || imaginiBase64.length === 0) {
-      return alert("Completează toate câmpurile și alege cel puțin o imagine!");
+      return alert("Completează toate câmpurile!");
     }
     setIncarcareInCurs(true);
     try {
@@ -141,7 +132,7 @@ function App() {
       setNumeNou("");
       setPretNou("");
       setImaginiBase64([]);
-      alert("Produs adăugat cu succes!");
+      alert("Produs adăugat!");
     } catch (eroare) {
       alert("Eroare la salvare.");
     } finally {
@@ -158,7 +149,7 @@ function App() {
   return (
     <div className="container">
       <div className="profile">
-        <div className="logo">
+        <div className="logo-container">
           <img src="logo.png" alt="Lux_Mob" className="logo-img"/>
         </div>
         <p className="profile-subtitle">Tehnică Apple Originală</p>
@@ -181,12 +172,9 @@ function App() {
           <form onSubmit={adaugaProdus} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             <input type="text" placeholder="Nume produs" value={numeNou} onChange={(e) => setNumeNou(e.target.value)} style={{ padding: "10px", background: "#333", color: "white", border: "none" }}/>
             <input type="text" placeholder="Preț" value={pretNou} onChange={(e) => setPretNou(e.target.value)} style={{ padding: "10px", background: "#333", color: "white", border: "none" }}/>
-            
-            <label style={{ color: "gold", fontSize: "12px" }}>Poți selecta mai multe poze simultan:</label>
             <input type="file" accept="image/*" multiple onChange={manipulareFisierePoze} style={{ color: "white" }}/>
-            
             <button type="submit" disabled={incarcareInCurs} style={{ padding: "12px", background: "gold", color: "black", fontWeight: "bold" }}>
-              {incarcareInCurs ? "Se salvează..." : `Adaugă pe Site (${imaginiBase64.length} foto selectate)`}
+              {incarcareInCurs ? "Se salvează..." : `Adaugă pe Site (${imaginiBase64.length} foto)`}
             </button>
           </form>
         </div>
@@ -195,7 +183,7 @@ function App() {
       <h2 className="title">Produse Apple</h2>
       
       {produse.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#666", marginTop: "20px", fontSize: "14px", fontStyle: "italic" }}>
+        <p style={{ textAlign: "center", color: "#666", marginTop: "20px", fontStyle: "italic" }}>
           Momentan nu sunt produse disponibile.
         </p>
       ) : (
@@ -206,28 +194,64 @@ function App() {
         </div>
       )}
 
-      {/* --- POP-UP NATIV TIP DIALOG (IMPOSIBIL DE BLOCAT SAU DECALAT) --- */}
-      <dialog ref={dialogRef} className="lightbox-dialog" onClick={inchidePozaMare}>
-        <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
-          <button className="lightbox-close-btn" onClick={inchidePozaMare}>×</button>
+      {/* --- POP-UP CU STILIZARE DIRECTĂ PENTRU FORȚAREA CENTRĂRII --- */}
+      {fereastraDeschisa && (
+        <div 
+          className="custom-lightbox-overlay" 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0, 0, 0, 0.96)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999999
+          }}
+          onClick={() => setFereastraDeschisa(false)}
+        >
+          <button className="lightbox-close-btn" onClick={() => setFereastraDeschisa(false)}>×</button>
           
-          <div className="lightbox-viewer">
+          <div 
+            className="lightbox-content-box" 
+            style={{
+              position: "relative",
+              width: "95%",
+              maxWidth: "800px",
+              height: "80vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {imaginiPopUp.length > 1 && (
               <button className="lightbox-btn-arrow left" onClick={() => setIndexPopUp((prev) => (prev - 1 + imaginiPopUp.length) % imaginiPopUp.length)}>‹</button>
             )}
 
-            <img src={imaginiPopUp[indexPopUp]} alt="Vizualizare mare" className="lightbox-main-img" />
+            <img 
+              src={imaginiPopUp[indexPopUp]} 
+              alt="Mare" 
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+                borderRadius: "8px"
+              }} 
+            />
 
             {imaginiPopUp.length > 1 && (
               <button className="lightbox-btn-arrow right" onClick={() => setIndexPopUp((prev) => (prev + 1) % imaginiPopUp.length)}>›</button>
             )}
           </div>
-
-          <div className="lightbox-indicator">
+          <div className="lightbox-indicator" style={{ marginTop: "15px", color: "#aaa" }}>
             {indexPopUp + 1} / {imaginiPopUp.length}
           </div>
         </div>
-      </dialog>
+      )}
     </div>
   );
 }
