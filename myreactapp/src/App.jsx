@@ -1,27 +1,49 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 
-function App() {
-  const [produse, setProduse] = useState(() => {
-    const produseSalvate = localStorage.getItem("produse_lux_mob");
-    return produseSalvate ? JSON.parse(produseSalvate) : [
-      {
-        id: 1,
-        nume: "iPhone 16 Pro Max",
-        pret: "39.999 MDL",
-        imagine: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab"
-      },
-      {
-        id: 2,
-        nume: "iPhone 15 Pro",
-        pret: "29.999 MDL",
-        imagine: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9"
-      }
-    ];
-  });
+// --- CONFIGURARE ȘI IMPORTURI FIREBASE ---
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 
-  // --- COLOANA DE SECURITATE PENTRU DIRECTOR ---
+// Datele tale reale preluate din consola Firebase:
+const firebaseConfig = {
+  apiKey: "AIzaSyDyyhd3e4G_zLn-DyLokswdeW2AFUvSSXo",
+  authDomain: "luxm-4377e.firebaseapp.com",
+  projectId: "luxm-4377e",
+  storageBucket: "luxm-4377e.firebasestorage.app",
+  messagingSenderId: "91700317006",
+  appId: "1:91700317006:web:1bed6021550988c471ac1f",
+  measurementId: "G-M6BKQ0E77N"
+};
+
+// Inițializăm aplicația și baza de date Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+// ------------------------------------
+
+function App() {
+  const [produse, setProduse] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [numeNou, setNumeNou] = useState("");
+  const [pretNou, setPretNou] = useState("");
+  const [imagineBase64, setImagineBase64] = useState(""); // Reținem imaginea convertită în text public
+  const [incarcareInCurs, setIncarcareInCurs] = useState(false);
+
+  // --- CITIRE DATE ÎN TIMP REAL ---
+  // Oricând adaugi sau ștergi un produs, modificarea apare instant la TOȚI utilizatorii de pe site
+  useEffect(() => {
+    const colectieProduse = collection(db, "produse");
+    
+    const unsubscribe = onSnapshot(colectieProduse, (snapshot) => {
+      const listaProduse = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setProduse(listaProduse);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const autentificareDirector = () => {
     const parolaIntrodusa = prompt("Introdu parola de administrator:");
@@ -35,50 +57,62 @@ function App() {
   const deconectareDirector = () => {
     setIsAdmin(false);
   };
-  // ---------------------------------------------
 
-  const [numeNou, setNumeNou] = useState("");
-  const [pretNou, setPretNou] = useState("");
-  // Aici vom salva imaginea transformată în text (Base64)
-  const [imagineNoua, setImagineNoua] = useState("");
-
-  useEffect(() => {
-    localStorage.setItem("produse_lux_mob", JSON.stringify(produse));
-  }, [produse]);
-
-  // Funcție care ia poza din telefon și o transformă în text
+  // Funcție care transformă poza din telefon/calculator într-un format text salvabil în baza de date
   const manipulareFisierPoza = (e) => {
     const fisier = e.target.files[0];
     if (fisier) {
+      if (fisier.size > 1500000) {
+        alert("Poza este prea mare! Te rog alege o altă imagine sau fă-i un screenshot pentru a reduce dimensiunea.");
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagineNoua(reader.result); // Salvează imaginea convertită
+        setImagineBase64(reader.result);
       };
       reader.readAsDataURL(fisier);
     }
   };
 
-  const adaugaProdus = (e) => {
+  const adaugaProdus = async (e) => {
     e.preventDefault();
     if (!numeNou || !pretNou) return alert("Introdu numele și prețul!");
-    if (!imagineNoua) return alert("Te rog să alegi o imagine din telefon!");
+    if (!imagineBase64) return alert("Te rog să alegi o imagine!");
 
-    const produsNou = {
-      id: Date.now(),
-      nume: numeNou,
-      pret: pretNou.includes("MDL") ? pretNou : `${pretNou} MDL`,
-      imagine: imagineNoua // Aici se salvează direct poza încărcată
-    };
+    setIncarcareInCurs(true);
 
-    setProduse([...produse, produsNou]);
-    setNumeNou("");
-    setPretNou("");
-    setImagineNoua("");
+    try {
+      const formatPret = pretNou.includes("MDL") ? pretNou : `${pretNou} MDL`;
+      
+      // Salvăm direct în cloud-ul Firebase Firestore
+      await addDoc(collection(db, "produse"), {
+        nume: numeNou,
+        pret: formatPret,
+        imagine: imagineBase64
+      });
+
+      // Curățăm formularul
+      setNumeNou("");
+      setPretNou("");
+      setImagineBase64("");
+      alert("Produsul a fost adăugat cu succes și este vizibil pentru toată lumea!");
+    } catch (eroare) {
+      console.error(eroare);
+      alert("A apărut o eroare la salvarea în baza de date.");
+    } finally {
+      setIncarcareInCurs(false);
+    }
   };
 
-  const stergeProdus = (id) => {
-    const produseRamase = produse.filter(produs => produs.id !== id);
-    setProduse(produseRamase);
+  const stergeProdus = async (id) => {
+    if (window.confirm("Sigur vrei să ștergi definitiv acest produs?")) {
+      try {
+        await deleteDoc(doc(db, "produse", id));
+      } catch (eroare) {
+        alert("Nu s-a putut șterge produsul.");
+      }
+    }
   };
 
   return (
@@ -105,27 +139,26 @@ function App() {
         </div>
       </div>
 
-      {/* --- PANOU ADMIN MODIFICAT PENTRU ÎNCĂRCARE FIȘIERE --- */}
+      {/* --- PANOU ADMINISTRATOR (DIRECTOR) --- */}
       {isAdmin && (
         <div style={{ background: "#1a1a1a", padding: "20px", borderRadius: "15px", marginTop: "30px", border: "1px solid gold" }}>
-          <h3 style={{ marginBottom: "15px", color: "gold" }}>Panou Director (Mod Editare Activ)</h3>
+          <h3 style={{ marginBottom: "15px", color: "gold" }}>Panou Director (Bază de date conectată)</h3>
           <form onSubmit={adaugaProdus} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             <input 
               type="text" 
-              placeholder="Nume produs" 
+              placeholder="Nume produs (ex: iPhone 15 Pro)" 
               value={numeNou} 
               onChange={(e) => setNumeNou(e.target.value)}
               style={{ padding: "10px", borderRadius: "5px", border: "none", background: "#333", color: "white" }}
             />
             <input 
               type="text" 
-              placeholder="Preț" 
+              placeholder="Preț (ex: 1200)" 
               value={pretNou} 
               onChange={(e) => setPretNou(e.target.value)}
               style={{ padding: "10px", borderRadius: "5px", border: "none", background: "#333", color: "white" }}
             />
             
-            {/* Butonul nou care deschide galeria foto a telefonului */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "5px" }}>
               <label style={{ color: "gold", fontSize: "14px" }}>Selectează poza din telefon:</label>
               <input 
@@ -136,16 +169,19 @@ function App() {
               />
             </div>
 
-            {/* Previhualizare mică a pozei alese înainte de salvare */}
-            {imagineNoua && (
+            {imagineBase64 && (
               <div style={{ marginTop: "5px" }}>
-                <p style={{ color: "#aaa", fontSize: "12px", marginBottom: "5px" }}>Previzualizare poză selectată:</p>
-                <img src={imagineNoua} alt="Preview" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px", border: "1px solid gold" }} />
+                <p style={{ color: "#aaa", fontSize: "12px", marginBottom: "5px" }}>Previzualizare foto:</p>
+                <img src={imagineBase64} alt="Preview" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px", border: "1px solid gold" }} />
               </div>
             )}
 
-            <button type="submit" style={{ padding: "10px", background: "gold", color: "black", border: "none", borderRadius: "5px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}>
-              Adaugă pe Site
+            <button 
+              type="submit" 
+              disabled={incarcareInCurs}
+              style={{ padding: "10px", background: incarcareInCurs ? "#555" : "gold", color: "black", border: "none", borderRadius: "5px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }}
+            >
+              {incarcareInCurs ? "Se salvează în baza de date..." : "Adaugă pe Site"}
             </button>
           </form>
         </div>
@@ -153,26 +189,7 @@ function App() {
 
       <h2 className="title">Produse Apple</h2>
 
+      {/* --- LISTA DE PRODUSE SINCRONIZATĂ --- */}
       <div className="products">
-        {produse.map((produs) => (
-          <div className="card" key={produs.id}>
-            <img src={produs.imagine} alt={produs.nume} />
-            <h3>{produs.nume}</h3>
-            <p>{produs.pret}</p>
-            
-            {isAdmin && (
-              <button 
-                onClick={() => stergeProdus(produs.id)}
-                style={{ margin: "10px", padding: "8px 12px", background: "#d9534f", color: "white", border: "none", borderRadius: "5px", cursor: "pointer", width: "calc(100% - 20px)" }}
-              >
-                Marchează ca Vândut (Șterge)
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export default App;
+        {produse.length === 0 ? (
+          <p style={{ color: "#aaa", textAlign: "center", width: "100%", gridColumn: "1/-1", padding: "20px"
