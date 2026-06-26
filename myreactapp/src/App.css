@@ -1,4 +1,3 @@
-/* --- RESETARE ȘI DESIGN GENERAL --- */
 * {
   margin: 0;
   padding: 0;
@@ -20,16 +19,24 @@ body {
   margin: 0 auto;
 }
 
-/* --- PROFIL HEADER --- */
+/* FIX LOGO */
 .profile {
   text-align: center;
   margin-top: 20px;
   margin-bottom: 30px;
 }
 
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
 .logo-img {
-  width: 90px;
-  height: 90px;
+  width: 90px !important;
+  height: 90px !important;
+  max-width: 90px !important;
+  max-height: 90px !important;
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid gold;
@@ -40,11 +47,9 @@ body {
 .profile-subtitle {
   color: #888;
   font-size: 14px;
-  margin-top: 8px;
-  letter-spacing: 1px;
 }
 
-/* --- BUTOANE TOP MENTINUTE --- */
+/* BUTOANE TOP */
 .buttons {
   display: flex;
   justify-content: center;
@@ -69,11 +74,6 @@ body {
   justify-content: center;
   text-decoration: none;
   border: none;
-  transition: background 0.2s ease;
-}
-
-.btn-normal:hover, .btn-suna:hover {
-  background-color: #dddddd;
 }
 
 .title {
@@ -82,10 +82,9 @@ body {
   margin: 30px 0 15px 0;
   border-bottom: 1px solid #222;
   padding-bottom: 10px;
-  color: #fff;
 }
 
-/* --- GRILA DE PRODUSE --- */
+/* PRODUSE */
 .products {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -115,7 +114,6 @@ body {
   object-fit: cover;
 }
 
-/* SĂGEȚILE PENTRU MINI-SLIDER --- */
 .nav-arrow {
   position: absolute;
   top: 50%;
@@ -128,10 +126,6 @@ body {
   border-radius: 50%;
   font-size: 18px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
 }
 .nav-arrow.left { left: 8px; }
 .nav-arrow.right { right: 8px; }
@@ -145,14 +139,11 @@ body {
   padding: 2px 6px;
   font-size: 11px;
   border-radius: 10px;
-  z-index: 5;
 }
 
 .card h3 {
   font-size: 14px;
-  font-weight: 500;
   margin: 10px 10px 4px 10px;
-  color: #efefef;
 }
 
 .card p {
@@ -165,54 +156,37 @@ body {
 .btn-sterge {
   background: red;
   color: white;
-  width: 100%;
   border: none;
   padding: 8px;
   cursor: pointer;
-  font-weight: bold;
 }
 
-/* ======================================================= */
-/* --- NOUL POP-UP COMPLET NATIV (LIGHTBOX VIA DIALOG) --- */
-/* ======================================================= */
-.lightbox-dialog {
-  border: none;
-  background: transparent;
-  max-width: 100vw;
-  max-height: 100vh;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
+/* FIX POP-UP POP-UP COMPLET ECRAN REPARAT REZISTENT */
+.custom-lightbox-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
 }
 
-/* Fundalul intunecat din spatele modalului */
-.lightbox-dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0.95);
-}
-
-.lightbox-content {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+.lightbox-content-box {
   position: relative;
-}
-
-.lightbox-viewer {
+  width: 90%;
+  max-width: 500px;
+  height: 70vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 800px;
-  height: 80vh;
-  position: relative;
-  padding: 0 60px;
 }
 
-.lightbox-main-img {
+.lightbox-big-img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
@@ -223,49 +197,39 @@ body {
   position: absolute;
   top: 20px;
   right: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: #fff;
-  font-size: 35px;
-  width: 50px;
-  height: 50px;
+  color: white;
+  font-size: 30px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
+  z-index: 100000;
 }
 
 .lightbox-btn-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
-  font-size: 40px;
-  width: 50px;
-  height: 50px;
+  font-size: 32px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 99;
 }
-.lightbox-btn-arrow:hover { background: rgba(255, 255, 255, 0.3); }
-.lightbox-btn-arrow.left { left: 15px; }
-.lightbox-btn-arrow.right { right: 15px; }
+.lightbox-btn-arrow.left { left: -10px; }
+.lightbox-btn-arrow.right { right: -10px; }
 
 .lightbox-indicator {
   margin-top: 15px;
-  color: #888;
-  font-size: 16px;
-  font-weight: 500;
+  color: #aaa;
+  font-size: 14px;
 }
 
-/* Formular Admin */
 form input[type="text"] {
   width: 100%;
   padding: 12px;
@@ -277,8 +241,6 @@ form input[type="text"] {
 
 @media (max-width: 500px) {
   .products { grid-template-columns: 1fr; }
-  .lightbox-viewer { padding: 0 45px; }
-  .lightbox-btn-arrow { width: 38px; height: 38px; font-size: 28px; }
   .lightbox-btn-arrow.left { left: 5px; }
   .lightbox-btn-arrow.right { right: 5px; }
 }
